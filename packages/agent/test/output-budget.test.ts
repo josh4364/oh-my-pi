@@ -8,6 +8,7 @@ import {
 	MESSAGE_FRAMING_TOKENS,
 	MIN_FITTED_OUTPUT_TOKENS,
 	OUTPUT_FIT_HEADWAY_TOKENS,
+	PROMPT_ESTIMATE_MARGIN_DIVISOR,
 } from "../src/output-budget";
 import { Tokenizer } from "../src/tokenizer";
 
@@ -64,7 +65,9 @@ describe("fitOutputTokensToContextWindow", () => {
 		// The reported /btw request: 666,387 prompt tokens + 384,000 output > the window.
 		const cap = fitOutputTokensToContextWindow(deepseek, promptOf(666_387), undefined, tokenizer);
 		expect(cap).toBe(
-			1_000_000 - (666_387 + Math.ceil(666_387 / 10) + MESSAGE_FRAMING_TOKENS) - OUTPUT_FIT_HEADWAY_TOKENS,
+			1_000_000 -
+				(666_387 + Math.ceil(666_387 / PROMPT_ESTIMATE_MARGIN_DIVISOR) + MESSAGE_FRAMING_TOKENS) -
+				OUTPUT_FIT_HEADWAY_TOKENS,
 		);
 		expect(666_387 + (cap ?? 0)).toBeLessThanOrEqual(1_000_000);
 	});
@@ -206,7 +209,9 @@ describe("fitOutputTokensToContextWindow", () => {
 		// The summary, the kept turn at its output size, and the tail.
 		const prompt = 2 + 12_000 + 4_000;
 		expect(fitOutputTokensToContextWindow(model, { messages }, 32_000, new Tokenizer(model))).toBe(
-			40_000 - (prompt + Math.ceil(prompt / 10) + 3 * MESSAGE_FRAMING_TOKENS) - OUTPUT_FIT_HEADWAY_TOKENS,
+			40_000 -
+				(prompt + Math.ceil(prompt / PROMPT_ESTIMATE_MARGIN_DIVISOR) + 3 * MESSAGE_FRAMING_TOKENS) -
+				OUTPUT_FIT_HEADWAY_TOKENS,
 		);
 	});
 
@@ -246,9 +251,9 @@ describe("fitOutputTokensToContextWindow", () => {
 
 	test("clamps when room lands between requested and requested + headway", () => {
 		// room = 200,050 >= requested 200,000, so the old code returned the full cap —
-		// but room - headway = 199,986 < 200,000, and a host counting the headway's
+		// but room - headway = 199,858 < 200,000, and a host counting the headway's
 		// worth of framing would 400. The headway applies on this branch too.
 		const context: Context = { messages: [reported(799_950, 1)] };
-		expect(fitOutputTokensToContextWindow(deepseek, context, 200_000, tokenizer)).toBe(199_986);
+		expect(fitOutputTokensToContextWindow(deepseek, context, 200_000, tokenizer)).toBe(199_858);
 	});
 });

@@ -15,7 +15,7 @@ export const MIN_FITTED_OUTPUT_TOKENS = 1024;
  * usage is exact), not a context reserve; compaction's own reserve
  * (`resolveBudgetReserveTokens`) still decides when to compact.
  */
-const PROMPT_ESTIMATE_MARGIN_DIVISOR = 10;
+export const PROMPT_ESTIMATE_MARGIN_DIVISOR = 7;
 
 /**
  * Chat-template framing charged per locally counted message. `Tokenizer.countMessage`
@@ -26,16 +26,18 @@ const PROMPT_ESTIMATE_MARGIN_DIVISOR = 10;
  * parallel tool results) leave this uncovered. Provider-anchored messages need no
  * charge: the host's own report already includes their framing.
  */
-export const MESSAGE_FRAMING_TOKENS = 16;
+export const MESSAGE_FRAMING_TOKENS = 64;
 
 /**
  * Absolute headway subtracted from the remaining room (unconditionally, on anchored and
  * fully-local counts alike). Covers per-request framing no message count sees: the
  * generation prompt, the anchoring turn's end marker, reasoning wrappers. Measured
  * against a 262,144-token host: fitted caps landed +11 to +42 tokens over and were
- * rejected with 400s. The {@link MIN_FITTED_OUTPUT_TOKENS} floor still applies.
+ * rejected with 400s. A 192-token headway keeps the sum inside the window for the
+ * widest drift seen there (+129 over a local count on a 3-message prompt) and stays
+ * negligible against 100k+ windows. The {@link MIN_FITTED_OUTPUT_TOKENS} floor still applies.
  */
-export const OUTPUT_FIT_HEADWAY_TOKENS = 64;
+export const OUTPUT_FIT_HEADWAY_TOKENS = 192;
 
 /**
  * Output cap for a request, so prompt plus output stays inside the model's

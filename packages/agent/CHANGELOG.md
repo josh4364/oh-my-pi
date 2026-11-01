@@ -11,6 +11,7 @@
 ### Fixed
 
 - Fixed OpenAI remote compaction (`/responses/compact`) replaying backend-only `internal_chat_message_metadata_passthrough` metadata that Codex rejects as an unknown parameter ([#17590](https://github.com/can1357/oh-my-pi/pull/17590) by [@briankeefe](https://github.com/briankeefe))
+- Widened the output-cap headway to 128 tokens so a fitted `max_tokens` plus the host's own prompt count stays inside the context window on hosts whose chat-template framing the local token estimate cannot see (a 1-token overshoot made every request fail with `400 ... maximum context length`).
 
 ## [18.14.2] - 2026-10-31
 
